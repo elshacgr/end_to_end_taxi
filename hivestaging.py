@@ -39,6 +39,3 @@ create_table_query = '''
 spark.sql(create_table_query)
 # Show Tables
 spark.sql("show tables").show()
-
-# Execute HiveQL query
-result = spark.sql("select * from green_taxi_data limit 10").show()

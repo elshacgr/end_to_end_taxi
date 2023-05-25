@@ -1,8 +1,6 @@
 import requests
 import shutil
-
 import os
-
 
 links = [
     "https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2022-01.parquet",
@@ -19,7 +17,7 @@ links = [
     "https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2022-12.parquet"
 ]
 
-# path windows
+# local path
 source_file_path = '/mnt/c/Users/USER/airflow/dags/data/'
 
 # Iterate over each link
@@ -37,7 +35,7 @@ for link in links:
         os.remove(file_path)
     # Check if the request was successful
     if response.status_code == 200:
-        # Save the response content (file) to your local direct
+        # Save the response content (file) to local direct
         with open(file_path, "wb") as file:
             file.write(response.content)
     
@@ -50,8 +48,6 @@ print("All files have been downloaded.")
 # # copy data to /home/elshacgr/taxidata
 destination = "/home/elshacgr/taxidata/"
 
-# shutil.move(source_file_path, folder_path)
-
 # Get a list of all files in the source folder
 files = os.listdir(source_file_path)
 
@@ -61,4 +57,8 @@ for file in files:
     if os.path.isfile(source_file_paths):
         shutil.copy(source_file_paths, destination)
 
-print('Files copied successfully.')
+# save to hdfs
+import subprocess
+
+hdfs_folder_path = '/user/elshacgr/data'
+subprocess.run(['hadoop', 'fs', '-put', destination, hdfs_folder_path])

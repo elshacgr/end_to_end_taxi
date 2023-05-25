@@ -10,36 +10,31 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 df = spark.table("default.taxi_with_desc")
+
+# drop ehail_fee because it contains only null value
 df = df.drop("ehail_fee")
 
-df = df.fillna("Others", subset=["VendorDesc"])
-
-
-############ create dim table store fwd flag
+# create Surrogate key for Store_fwd_flag
 df = df.withColumn("SK_Store_Fwd_Flag", when(col("store_and_fwd_flag_desc") == "Not a store and Forward Trip", 1) \
                                 .when(col("store_and_fwd_flag_desc") == "Store and Forward Trip", 2) \
                                        .otherwise(3))
-
+# drop null value in trip_type and trip_type_desc columns
 df = df.na.drop(subset=["trip_type","trip_type_desc"])
 
+# create dimension table vendor
 dim_vendor = df.select("VendorID","VendorDesc").distinct().orderBy("VendorID")
-# dim_vendor.show()
+# create dimension table trip
 dim_trip = df.select("trip_type","trip_type_desc").distinct().orderBy("trip_type")
-# dim_trip.show()
-
+# create dimension table payment
 dim_payment = df.select("payment_type","payment_type_desc").distinct().orderBy("payment_type")
-# dim_payment.show()
-
+# create dimension store_fwd_flag
 dim_store_fwd_flag = df.select("SK_Store_Fwd_Flag","store_and_fwd_flag","store_and_fwd_flag_desc").distinct().orderBy("SK_Store_Fwd_Flag")
-# dim_store_fwd_flag.show()
-
+# create dimension ratecode
 dim_ratecode = df.select("RatecodeID","RateCodeDesc").distinct().orderBy("RatecodeID")
-# dim_ratecode.show()
 
 
 ############ Creating Fact Table
 fact_table = df.selectExpr("VendorID","SK_Store_Fwd_Flag","RatecodeID","lpep_pickup_datetime","lpep_dropoff_datetime","PULocationID","DOLocationID","passenger_count","trip_distance","fare_amount","extra","mta_tax","tip_amount","tolls_amount","improvement_surcharge","total_amount","payment_type","trip_type","congestion_surcharge").distinct()
-# fact_table.show()
 
 # Specify the new database name
 database_name = "database_taxi"
