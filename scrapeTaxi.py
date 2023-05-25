@@ -57,7 +57,7 @@ for file in files:
     if os.path.isfile(source_file_paths):
         shutil.copy(source_file_paths, destination)
 
-# save to hdfs
+# save to hdfs so it can be accessed with hive
 import subprocess
 
 hdfs_folder_path = '/user/elshacgr/data'
